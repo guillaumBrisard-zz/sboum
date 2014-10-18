@@ -1,0 +1,1 @@
+include "sboum-service", "sboum-business", "sboum-mongodao", "sboum-model", "sboum-utils"

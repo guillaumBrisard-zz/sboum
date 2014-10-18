@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" version="3.1"
+>
+
+	<display-name>sBoum</display-name>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- Configure ContextLoaderListener to use AnnotationConfigWebApplicationContext
+		instead of the default XmlWebApplicationContext -->
+	<context-param>
+		<param-name>contextClass</param-name>
+		<param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+	</context-param>
+
+	<!-- Configuration locations must consist of one or more comma- or space-delimited fully-qualified @Configuration classes.
+		Fully-qualified packages may also be specified for component-scanning -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>com.gb.sboum.config.AppContextConfig</param-value>
+		<!-- <param-value>classpath:applicationContext.xml</param-value> -->
+	</context-param>
+
+	<servlet>
+		<servlet-name>com.gb.sboum.service.Application</servlet-name>
+		<!--
+			<init-param>
+			<param-name>javax.json.stream.JsonGenerator.prettyPrinting</param-name>
+			<param-value>true</param-value>
+			</init-param>
+		-->
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>com.gb.sboum.service.Application</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+
+</web-app>

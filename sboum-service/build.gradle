@@ -1,0 +1,59 @@
+apply plugin: 'war'
+
+// Classpath entry for Eclipse WTP which changes the order of classpathentries; otherwise no sources for 3rd party jars are shown
+eclipse.classpath.file.withXml { xml ->
+	def node = xml.asNode()
+	node.remove( node.find { it.@path == 'org.eclipse.jst.j2ee.internal.web.container' } )
+	node.appendNode( 'classpathentry', [ kind: 'con', path: 'org.eclipse.jst.j2ee.internal.web.container', exported: 'true'])
+}
+
+war.archiveName "sboum-service.war"
+
+sourceSets {
+    main {
+        java {
+            srcDir generatedSrcDir
+        }
+    }
+}
+
+dependencies {
+	compile project(':sboum-business')
+	compile project(':sboum-model')
+	compile project(':sboum-utils')
+
+	aspectpath project(':sboum-utils') 
+	//add project dependencies (aspectpath) in AJDT for Eclipse
+	eclipse.classpath.file.withXml { xmlProvider ->
+		def classpathNode = xmlProvider.asNode()
+		def xmlparser = new XmlParser()
+		def attributesNode = xmlparser.createNode(classpathNode.children().find{ it['@path'] == "/sboum-utils" }, 'attributes', [:])
+		xmlparser.createNode(attributesNode, 'attribute', [name: 'org.eclipse.ajdt.aspectpath', value: 'org.eclipse.ajdt.aspectpath']);
+	}
+
+	compile libs.'jersey-container-servlet'
+	compile libs.'jersey-media-json-jackson'
+	compile libs.'jersey-bean-validation'
+	compile libs.'jersey-spring3'
+
+	compile libs.'jackson-core'
+	compile libs.'jackson-annotations'
+	compile libs.'jackson-databind'
+	compile libs.'jackson-jaxrs-json-provider'
+	compile libs.'jackson-datatype-jsr310'
+	compile libs.'jackson-datatype-jsr353'
+
+	compile libs.'spring-core'
+	compile libs.'spring-beans'
+	compile libs.'spring-aspects'
+	compile libs.'spring-tx'
+	compile libs.'spring-context'
+	compile libs.'spring-web'
+
+	compile libs.'aspectjweaver'
+	compile libs.'aspectjrt'
+	
+	provided libs.'selma-processor'
+	compile libs.'selma'
+}
+

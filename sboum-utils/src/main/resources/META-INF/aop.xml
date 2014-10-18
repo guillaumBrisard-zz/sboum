@@ -1,0 +1,14 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+
+    <!--weaver options="-XnoInline -Xlint:ignore -Xset:weaveJavaxPackages=true -Xreweavable -verbose -showWeaveInfo -debug" -->
+    <weaver options="-showWeaveInfo">
+    	<include within="com.gb.sboum.utils.log.*" />
+    </weaver>
+   
+
+    <aspects>
+        <aspect name="com.gb.sboum.utils.log.LoggableAspect"/>
+    </aspects>
+
+</aspectj>

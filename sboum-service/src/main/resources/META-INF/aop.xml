@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+
+	<!--weaver options="-XnoInline -Xlint:ignore -Xset:weaveJavaxPackages=false -Xreweavable -verbose -showWeaveInfo -debug"-->
+    <weaver options="-Xset:weaveJavaxPackages=true -verbose -showWeaveInfo">
+        <!-- only weave classes in our application-specific packages 
+        <include within="com.gb.sboum.service.aspect.**" />
+        <include within="com.gb.sboum.service.endpoint.**" />        
+        --> 
+        
+        <include within="com.gb.sboum..*"/>
+        
+          
+    </weaver> 
+
+    <aspects>
+        <aspect name="com.gb.sboum.service.aspect.LoggableEndpointAspect"/>
+    </aspects>    
+
+</aspectj>

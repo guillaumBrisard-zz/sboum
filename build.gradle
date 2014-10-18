@@ -1,0 +1,177 @@
+buildscript {
+	repositories {
+		// Add to gradle provided and optional features
+		jcenter()
+	}
+
+	dependencies {
+		classpath files('lib/gradle-aspectj-1.5.jar')
+		// Add to gradle provided and optional features
+		 classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:1.12.+'
+	}
+}
+
+allprojects {
+	apply plugin: 'eclipse'
+
+	eclipse {
+		classpath {
+			downloadSources = true
+			downloadJavadoc = true
+		}
+	}
+
+	repositories {
+		mavenCentral()
+	}
+
+	ext.versions = [
+		aspectj:	'1.8.2'
+	]
+}
+
+project.ext {
+	aspectjVersion = "${versions.aspectj}"
+}
+
+subprojects {
+	apply plugin: 'provided-base'
+	apply plugin: 'java'
+	apply plugin: 'aspectj'
+	apply plugin: 'eclipse-wtp' // Why all subprojects ? Because otherwise the deployment in eclipse's tomcat doesn't work.
+
+	//add aspectj support for eclipse plugin
+	eclipse.project.file.withXml { xmlProvider ->
+		Node projectDescription = xmlProvider.asNode()
+		def buildCommandNode = projectDescription.buildSpec.'**'.find{ it.text() == 'org.eclipse.jdt.core.javabuilder' }
+		buildCommandNode.parent().remove(buildCommandNode)
+	}
+	eclipse.project {
+		buildCommand 'org.eclipse.ajdt.core.ajbuilder'
+		natures 'org.eclipse.ajdt.ui.ajnature'
+	}
+
+	version = '0.1'
+	group = "com.gb.sboum"
+
+	jar {
+		manifest.attributes provider: 'sBoum Company'
+	}
+
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+
+	configurations {
+		all*.exclude group: 'org.mockito', module: 'mockito-all'
+		
+		all*.exclude group: 'commons-logging', module: 'commons-logging'
+		all*.exclude group: 'log4j', module: 'log4j'
+		all*.exclude group: 'org.apache.logging.log4j'
+
+		all*.exclude group: 'org.slf4j', module: 'slf4j-jcl'
+		all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+		all*.exclude group: 'org.slf4j', module: 'slf4j-jdk14'
+		all*.exclude group: 'org.slf4j', module: 'slf4j-nop'
+		all*.exclude group: 'org.slf4j', module: 'slf4j-simple'
+	}
+	
+	ext.generatedSrc = "$buildDir/generated-src"
+	ext.generatedSrcDir = file("$generatedSrc")
+	
+	ext.versions += [
+		junit:		'4.11',
+		mockito:	'1.9.5',
+		hamcrest:	'1.3',
+
+		slf4j:		'1.7.7',
+		logback:	'1.1.2',
+
+		jersey:		'2.11',
+		jackson:	'2.4.2',
+
+		spring:		'4.1.1.RELEASE',
+		
+		selma:		'0.8'
+	]
+
+	ext.libs = [
+		'hamcrest-core':				["org.hamcrest:hamcrest-core:${versions.hamcrest}"], // Because JUnit and Mockito use it
+		'hamcrest-library':				["org.hamcrest:hamcrest-library:${versions.hamcrest}"],
+		'junit':						["junit:junit:${versions.junit}", { exclude group: 'org.hamcrest', module: 'hamcrest-core' }],
+		// NEVER use mockito-all, see mockito-core VS mockito-all https://code.google.com/p/mockito/wiki/DeclaringMockitoDependency
+		'mockito-core': 				["org.mockito:mockito-core:${versions.mockito}", { exclude group: 'org.hamcrest', module: 'hamcrest-core' }],
+
+
+		'slf4j-api':					["org.slf4j:slf4j-api:${versions.slf4j}"],
+		'logback-core':					["ch.qos.logback:logback-core:${versions.logback}"],
+		'logback-classic':				["ch.qos.logback:logback-classic:${versions.logback}"],
+		'jcl-over-slf4j':				["org.slf4j:jcl-over-slf4j:${versions.slf4j}"],
+		'log4j-over-slf4j':				["org.slf4j:log4j-over-slf4j:${versions.slf4j}"],
+		// Be aware of the performance issue http://www.slf4j.org/legacy.html#jul-to-slf4j
+		'jul-to-slf4j':					["org.slf4j:jul-to-slf4j:${versions.slf4j}"],
+
+		'jersey-container-servlet':		["org.glassfish.jersey.containers:jersey-container-servlet:${versions.jersey}"],
+		'jersey-media-json-jackson':	["org.glassfish.jersey.media:jersey-media-json-jackson:${versions.jersey}", {
+				exclude group: 'com.fasterxml.jackson.jaxrs'
+				exclude group: 'com.fasterxml.jackson.core'
+				exclude group: 'com.fasterxml.jackson.datatype'
+			}],
+		'jersey-bean-validation':		["org.glassfish.jersey.ext:jersey-bean-validation:${versions.jersey}"],
+		'jersey-spring3':				["org.glassfish.jersey.ext:jersey-spring3:${versions.jersey}", {
+				exclude group: 'org.springframework', module: 'spring-web' // To show why we include it later
+				exclude group: 'org.springframework'
+			}],
+
+		'jackson-core':					["com.fasterxml.jackson.core:jackson-core:${versions.jackson}"],
+		'jackson-annotations':			["com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"],
+		'jackson-databind':				["com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"],
+		'jackson-jaxrs-json-provider':	["com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${versions.jackson}"],
+		'jackson-datatype-jsr310':		["com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"],
+		'jackson-datatype-jsr353':		["com.fasterxml.jackson.datatype:jackson-datatype-jsr353:${versions.jackson}"],
+
+		'spring-core':					["org.springframework:spring-core:${versions.spring}", { exclude group: 'org.aspectj', module: 'aspectjweaver' }],
+		'spring-beans':					["org.springframework:spring-beans:${versions.spring}"],
+		'spring-aop':					["org.springframework:spring-aop:${versions.spring}", { exclude group: 'org.aspectj', module: 'aspectjweaver' }],
+		'spring-aspects':				["org.springframework:spring-aspects:${versions.spring}", { exclude group: 'org.aspectj', module: 'aspectjweaver' }],
+		'spring-tx':					["org.springframework:spring-tx:${versions.spring}", { exclude group: 'org.aspectj', module: 'aspectjweaver' }],
+		'spring-context': 				["org.springframework:spring-context:${versions.spring}", { exclude group: 'org.aspectj', module: 'aspectjweaver' }],
+		'spring-web':					["org.springframework:spring-web:${versions.spring}", { exclude group: 'org.aspectj', module: 'aspectjweaver' }],
+
+		'aspectjrt':					["org.aspectj:aspectjrt:${versions.aspectj}"],
+		'aspectjweaver':				["org.aspectj:aspectjweaver:${versions.aspectj}"],
+		'aspectjtools':					["org.aspectj:aspectjtools:${versions.aspectj}"],
+		
+		'selma-processor':				["fr.xebia.extras:selma-processor:${versions.selma}"],
+		'selma':						["fr.xebia.extras:selma:${versions.selma}"]
+	]
+
+	dependencies {
+		testAspectpath files("$buildDir/classes/main")
+		
+		compile libs.'slf4j-api'
+		compile libs.'logback-core'
+		compile libs.'logback-classic'
+		compile libs.'jcl-over-slf4j'
+		compile libs.'log4j-over-slf4j'
+		compile libs.'jul-to-slf4j'
+
+		testCompile libs.'junit'
+		testCompile libs.'hamcrest-core'
+		testCompile libs.'hamcrest-library'		
+		testCompile libs.'mockito-core'
+	}
+	
+	compileAspect {
+		doFirst {
+			generatedSrcDir.exists() || generatedSrcDir.mkdirs()
+		}
+		additionalAjcArgs = [
+			's' : "$generatedSrc", 
+			'X' : 'noInline'
+		]
+   }
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.1'
+}

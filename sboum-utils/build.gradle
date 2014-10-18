@@ -1,0 +1,7 @@
+dependencies {    
+    compile libs.'spring-core'
+    compile libs.'spring-beans'
+    compile libs.'spring-aop'
+    
+    compile libs.'aspectjweaver'
+}
